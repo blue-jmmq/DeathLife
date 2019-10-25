@@ -249,6 +249,17 @@ func (implementación *Implementación) Correr() {
 	pixelgl.Run(implementación.HiloPrincipal)
 }
 
+func (implementación *Implementación) Dibujar() {
+	for y := 0; y < implementación.Imagen.Rect.Dy(); y++ {
+		for x := 0; x < implementación.Imagen.Rect.Dx(); x++ {
+			píxel := implementación.Juego.Pixeles.Leer(y, x).(Píxel)
+			clr := píxel.Color
+			rgba := color.RGBA{R: clr.Rojo, G: clr.Verde, B: clr.Azul, A: 255}
+			implementación.Imagen.SetRGBA(x, y, rgba)
+		}
+	}
+}
+
 func (implementación *Implementación) HiloPrincipal() {
 	configuración := pixelgl.WindowConfig{
 		Title:  "Pixel Rocks!",
@@ -259,16 +270,18 @@ func (implementación *Implementación) HiloPrincipal() {
 	if err != nil {
 		panic(err)
 	}
+	implementación.Juego.Dibujar()
+	implementación.Imagen = image.NewRGBA(
+		image.Rect(
+			0, 
+			0, 
+			implementación.Juego.Pixeles.LeerAnchura(), 
+			implementación.Juego.Pixeles.LeerAltura(),
+		),
+	)
+	implementación.Dibujar()
 
-	imagen := image.NewRGBA(image.Rect(0, 0, 1024, 512))
-	for y := 0; y < imagen.Rect.Dy(); y++ {
-		for x := 0; x < imagen.Rect.Dx(); x++ {
-			color := color.RGBA{R: 255, G: 0, B: 0, A: 255}
-			imagen.SetRGBA(x, y, color)
-		}
-	}
-
-	cuadro := pixel.PictureDataFromImage(imagen)
+	cuadro := pixel.PictureDataFromImage(implementación.Imagen)
 	sprite := pixel.NewSprite(cuadro, cuadro.Bounds())
 
 	ventana.Clear(colornames.Skyblue)
@@ -332,10 +345,9 @@ func (juego *Juego) DibujarSímbolo(símbolo *Símbolo, fila, columna int) {
 	xFinal := xInicial + juego.TamañoDeSímbolo
 	for y := yInicial; y < yFinal; y++ {
 		for x := xInicial; x < xFinal; x++ {
-			colorIndex := símbolo.Celdas.Leer(y, x).(int)
-			
-			píxel.Color = juego.Colores[colorIndex]
-			juego.Pixeles.Escribir(y, x, Píxel{Color: })
+			colorIndex := símbolo.Celdas.Leer(y - yInicial, x - xInicial).(byte)
+			color := juego.Colores[colorIndex]
+			juego.Pixeles.Escribir(y, x, Píxel{Color: color})
 		}
 	}
 
@@ -343,10 +355,11 @@ func (juego *Juego) DibujarSímbolo(símbolo *Símbolo, fila, columna int) {
 
 func (juego *Juego) DibujarOcupante(fila, columna int) {
 	var símbolo *Símbolo
-	ocupante := juego.Cuarto.Ocupantes.Leer(fila, columna).(Ocupante)
-	if ocupante == nil {
+	interfaz := juego.Cuarto.Ocupantes.Leer(fila, columna)
+	if interfaz == nil {
 		símbolo = juego.SímboloVacío
 	} else {
+		ocupante := interfaz.(Ocupante)
 		símbolo = ocupante.LeerSímbolo()
 	}
 	juego.DibujarSímbolo(símbolo, fila, columna)
