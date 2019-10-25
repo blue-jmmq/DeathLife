@@ -333,7 +333,7 @@ func (juego *Juego) DibujarSímbolo(símbolo *Símbolo, fila, columna int) {
 	for y := yInicial; y < yFinal; y++ {
 		for x := xInicial; x < xFinal; x++ {
 			colorIndex := símbolo.Celdas.Leer(y, x).(int)
-
+			
 			píxel.Color = juego.Colores[colorIndex]
 			juego.Pixeles.Escribir(y, x, Píxel{Color: })
 		}
