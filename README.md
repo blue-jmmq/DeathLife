@@ -1,2 +1,2 @@
 # DeathLife
- Juego de acertijos
+ Juego de acertijos y exploración
